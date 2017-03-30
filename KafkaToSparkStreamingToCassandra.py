@@ -31,7 +31,7 @@ def CreateSparkContext():
 
     sparkConf = SparkConf()                                                       \
                          .setAppName("PythonStreaming").setMaster("local[2]") \
-                         .set("spark.cassandra.connection.host", "192.168.0.41")
+                         .set("spark.cassandra.connection.host", "x.x.x.x")
                          #.set("spark.ui.showConsoleProgress", "false") \
                          
     sc = SparkContext(conf = sparkConf)
@@ -135,7 +135,7 @@ def main():
 
     #KafkaUtils.createDirectStream(ssc, topics, kafkaParams, fromOffsets, keyDecoder, valueDecoder, messageHandler)
 
-        lines = KafkaUtils.createDirectStream(ssc, ["Test0221110"], {"metadata.broker.list": "192.168.0.121:9092"})
+        lines = KafkaUtils.createDirectStream(ssc, ["Test0221110"], {"metadata.broker.list": "127.0.0.1:9092"})
         #kvs = KafkaUtils.createStream(ssc, "192.168.0.121:9092", TopicList,  1)
         #kafkaStream = KafkaUtils.createStream(ssc, "192.168.0.121:9092", "topic", {topic: 4})
         #counts=lines.map(lambda word: (word[1], str(datetime.now())))   #Charles=======================================================
