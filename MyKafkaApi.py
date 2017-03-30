@@ -10,7 +10,7 @@ app = Flask(__name__)
 @app.route('/', methods=['GET'])
 
 def index():
-	producer2 = KafkaProducer(bootstrap_servers=['192.168.0.121:9092'])
+	producer2 = KafkaProducer(bootstrap_servers=['127.0.0.1:9092'])
 	producer2.send('Test0220', b'1500')	
 	producer2.flush()
 	return "Index"
@@ -22,7 +22,7 @@ def add():
 	print(type(request.json['data1'].encode('utf-8')))
 	print(request.json)
 	print(request.json['data1'])
-	producer = KafkaProducer(bootstrap_servers=['192.168.0.121:9092'])
+	producer = KafkaProducer(bootstrap_servers=['127.0.0.1:9092'])
 	producer.send('Test0220', request.json['data1'].encode('utf-8'))	
 	producer.flush()
 	return "add Data~"
