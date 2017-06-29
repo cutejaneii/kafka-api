@@ -6,8 +6,6 @@
 # Use this command to excute .py file : 
 #    spark-submit --packages datastax:spark-cassandra-connector:2.0.0-M2-s_2.11 KafkaToSparkStreamingToCassandra.py
 
-
-
 import sys
 from pyspark import SparkConf
 from pyspark import  SparkContext
@@ -19,18 +17,19 @@ from cassandra.cluster import Cluster
 from cassandra.auth import PlainTextAuthProvider
 from cassandra.query import BatchStatement
 
-from pyspark.sql import Row, SparkSession, SQLContext
+from pyspark.sql import Row, SparkSession, SQLContext, types
 from pyspark.sql.types import *
 import pandas as pd
 from datetime import datetime
 
-def CreateSparkContext():    
+def CreateSparkContext():
 
     sparkConf = SparkConf()                                                       \
                          .setAppName("PythonStreaming").setMaster("local[2]") \
-                         .set("spark.cassandra.connection.host", "x.x.x.x")
-                         
+                         .set("spark.cassandra.connection.host", "192.168.0.1")
+
     sc = SparkContext(conf = sparkConf)
+
     return (sc)
 
 
@@ -49,37 +48,46 @@ def getSparkSessionInstance(sparkConf):
         pass
 
 
-    # Convert RDDs of the words DStream to DataFrame and run SQL query
-def saveToCassandra(rowRdd):
+# Convert RDDs of the words DStream to DataFrame and run SQL query
+def saveToCassandra(rowRdd, sc, ssc):
     try:
-            # Get the singleton instance of SparkSession
+        # Get the singleton instance of SparkSession
         spark = getSparkSessionInstance(rowRdd.context.getConf())
-        
-            # Convert RDD[String] to RDD[Row] to DataFrame     
-        
-        rdd = rowRdd.map(lambda w: Row(input=w[1],time=w[1])) 
-	
-        print('-------Start to createDataFrame.....')
 
-	schema = StructType([
-		StructField("time", StringType(), True),
-		StructField("input", StringType(), True)
-	])
+        # Convert RDD[String] to RDD[Row] to DataFrame
 
-	wordsDataFrame = spark.createDataFrame(rdd, schema=schema)
-       
-	print(wordsDataFrame)
+        print('--------------------Start to createDataFrame--------------------')
+        print(rowRdd)
 
-	print('.........DataFrame ready.....')       
-        
+        rdd = rowRdd.map(lambda w: Row(create_date=w[0], create_user=w[1], raw_data=w[2]))
+
+        print(rdd);
+
+        print('--------------------Start to create Schema--------------------')
+
+        schema = StructType([
+                StructField("create_date", StringType(), True),
+                StructField("create_user", StringType(), True),
+                StructField("raw_data", StringType(), True)
+        ])
+
+        wordsDataFrame = spark.createDataFrame(rdd, schema=schema)
+
         wordsDataFrame.show()
 
-        print('.........DataFrame ready2.....')          
-        
+        #SqlContext = SQLContext(sc)
+
+        #df = SqlContext.read\
+        #    .format("org.apache.spark.sql.cassandra")\
+        #    .options(table="nebula_raw_data", keyspace="production_keyspace")\
+        #    .load()
+
+        #df.show()
+
         wordsDataFrame.write\
             .format("org.apache.spark.sql.cassandra")\
             .mode('append')\
-            .options(table="kafka_test2", keyspace="mykeyspace")\
+            .options(table="tabel_name", keyspace="my_keyspace")\
             .save()
 
     except Exception,ee2:
@@ -89,27 +97,27 @@ def saveToCassandra(rowRdd):
         pass
 
 def main():
-    
+
     try:
         sc = CreateSparkContext()
         ssc = StreamingContext(sc, 10)
-        topics = "Test0221110"
 
-        lines = KafkaUtils.createDirectStream(ssc, ["Test0221110"], {"metadata.broker.list": "127.0.0.1:9092"})
+        lines = KafkaUtils.createDirectStream(ssc, ["my_topic"], {"metadata.broker.list":"192.168.0.1:9092"})
 
-        counts=lines.map(lambda word: (str(datetime.now()), word[1]))
-               
-        counts.foreachRDD(lambda k: saveToCassandra(k))
+        counts=lines.map(lambda word: (str(datetime.now()), "api", word[1]))
+
+        counts.foreachRDD(lambda k: saveToCassandra(k, sc, ssc))
 
         ssc.start()
-	
+
         ssc.awaitTermination()
-    
+
     except Exception, e:
         print('error:'+str(e))
     finally:
         pass
-    
+
 if __name__ == "__main__":
 
     main()
+
