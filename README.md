@@ -3,7 +3,7 @@
 using Kafka-python.
 To allow users to insert json data into Kafka, then save into Cassandra by using spark streaming.
 
-### Insert data into Kafka ###
+¿### Insert data into Kafka ###
 
 **kafka-api-with-topic.py**
 
@@ -15,7 +15,7 @@ User call API with data which need to be insert into Kafka.
 Kafka topic is defined in REST API, user cannot change it.
 
 
-### Get Kafka message and save into Cassandra ###
+¿### Get Kafka message and save into Cassandra ###
 
 **kafka.stream.spark-streaming.py**
 
