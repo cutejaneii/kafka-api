@@ -75,7 +75,7 @@ def saveToCassandra(rowRdd, sc, ssc):
         wordsDataFrame.write\
             .format("org.apache.spark.sql.cassandra")\
             .mode('append')\
-            .options(table="nebula_raw_data", keyspace="production_keyspace")\
+            .options(table="table_name", keyspace="my_keyspace")\
             .save()
 
     except Exception,ee2:
